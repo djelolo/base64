@@ -8,36 +8,50 @@ char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', '
               '+', '/', '='};
 
 
+void encode(char* src, char* dst);
+
 
 int main(int argc, char const *argv[]) {
-  unsigned char inBuf[100], outBuf[200] = {0};
-  unsigned char *src = inBuf, *dst = outBuf;
-  unsigned char buffer;
-
-  int counter = 0;
-
+  char inBuf[100], outBuf[200] = {0};
   sprintf(inBuf, "tester");
+
+  encode(inBuf, outBuf);
+
+  printf("%s\n%s\n", inBuf, outBuf);
+
+  return 0;
+}
+
+
+
+
+
+
+void encode(char* src, char* dst)
+{
+  int counter = 0;
+  unsigned char buffer;
 
   while (*src != '\0')
   {
-
     switch (counter)
     {
       case 0:
         *dst++ = dic[*src >> 2];
         buffer = (*src++ << 4) & 0x30;
+        counter++;
         break;
       case 1:
         *dst++ = dic[(*src >> 4) | buffer];
         buffer = (*src++ << 2) & 0x3C;
+        counter++;
         break;
       case 2:
         *dst++ = dic[(*src >> 6) | buffer];
         *dst++ = dic[*src++ & 0x3F];
+        counter = 0;
         break;
     }
-
-    counter = (counter + 1) % 3;
   }
 
   switch (counter)
@@ -54,9 +68,4 @@ int main(int argc, char const *argv[]) {
       *dst++ = '=';
       break;
   }
-
-
-  printf("%s\n%s\n", inBuf, outBuf);
-
-  return 0;
 }
