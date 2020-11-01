@@ -2,14 +2,16 @@
 #include <stdlib.h>
 
 
-char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               '+', '/', '='};
 
 
 void encode(char* src, char* dst);
+void decode(char* src, char* dst);
 
+int convertChar(char in, char* out);
 
 int main(int argc, char const *argv[]) {
   char inBuf[100], outBuf[200] = {0};
@@ -18,6 +20,13 @@ int main(int argc, char const *argv[]) {
   encode(inBuf, outBuf);
 
   printf("%s\n%s\n", inBuf, outBuf);
+
+
+  sprintf(inBuf, "Q2xlbWVudA==");
+  decode(inBuf, outBuf);
+  printf("%s\n%s\n", inBuf, outBuf);
+
+
 
   return 0;
 }
@@ -68,4 +77,72 @@ void encode(char* src, char* dst)
       *dst++ = '=';
       break;
   }
+}
+
+
+
+void decode(char* src, char* dst)
+{
+  unsigned char buffer;
+  int counter = 0;
+  char value;
+
+  while (*src != '\0')
+  {
+    if (convertChar(*src++, &value) != 0)
+    {
+      printf("Error\n");
+      return;
+    }
+
+    switch (counter)
+    {
+      case 0:
+        buffer = value << 2;
+        counter++;
+        break;
+      case 1:
+        *dst++ = buffer | (value >> 4);
+        buffer = value << 4;
+        counter++;
+        break;
+      case 2:
+        *dst++ = buffer | (value >> 2);
+        buffer = value << 6;
+        counter++;
+        break;
+      case 3:
+        *dst++ = buffer | value;
+        counter = 0;
+    }
+  }
+  *dst = '\0';
+
+  if (counter != 0)
+    printf("Error\n");
+}
+
+
+
+int convertChar(char in, char* out)
+{
+  int retCode = 0;
+
+  if ((in >= 'A') && (in <= 'Z'))
+    *out = in -'A';
+  else if ((in >= 'a') && (in <= 'z'))
+    *out = in -'a' + 26;
+  else if ((in >= '0') && (in <= '9'))
+    *out = in - '0' + 52;
+  else if (in == '+')
+    *out = 62;
+  else if (in =='\\')
+    *out = 63;
+  else if (in == '=')
+    *out = 0;
+  else {
+    retCode = -1;
+  }
+
+    return retCode;
 }
