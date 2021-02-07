@@ -22,8 +22,7 @@ base64: $(OBJ)
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
-
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
 
 run:
-	base64
+	./base64 -e
