@@ -4,22 +4,17 @@
 #include <argp.h>
 #include "base64.h"
 
-const char * argp_program_version = "0.0.1";
+const char * argp_program_version = "0.1";
 static char doc[] = "base64 encoding and decoding utility program";
 static struct argp_option options[] = {
-//  {"verbose", 'v', 0, 0, "Produce verbose output\0", 0},
   {"in", 'i', "FILE", 0, "Use file as input", 0},
   {"out", 'o', "FILE", 0, "Write output to file", 0},
-//  {"verbose", 'v', 0, 0, "Produce verbose output\0", 0},
   {"encode", 'e', 0, 0, "Encode input in base64", 0},
   {"decode", 'd', 0, 0, "Decode input from base64", 0},
-//   {"input", 'i', 0, 0, "Input file"}
 };
 
 struct arguments
 {
-//  char *args[2];
-//  int verbose;
   int encode;
   int decode;
   char *output_file;
@@ -51,13 +46,6 @@ parse_opt(int key, char *arg, struct argp_state *state)
     case 'i':
       arguments->input_file = arg;
       break;
-    // case 'v':
-    //   arguments->verbose = 1;
-    //   break;
-    // case 'o':
-    //   arguments->output_file = arg;
-    //   break;
-
     // case ARGP_KEY_ARG:
     //   if (state->arg_num >= 2)
     //     /* Too many arguments. */
@@ -84,52 +72,70 @@ parse_opt(int key, char *arg, struct argp_state *state)
 }
 
 
-// static struct argp argp = {options, parse_opt, args_doc, doc, 0, 0, 0 };
 static struct argp argp = {options, parse_opt, 0, doc, 0, 0, 0 };
 
 
+
+int readFile(char* buffer, int size, FILE *stream);
+
 // MAIN
 int main(int argc, char *argv[]) {
+    struct arguments arguments;
+    arguments.encode = 0;
+    arguments.decode = 0;
+    arguments.output_file = "";
+    arguments.input_file = "";
+
+    argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
 
-  struct arguments arguments;
-  arguments.encode = 0;
-  arguments.decode = 0;
-  arguments.output_file = "";
-  arguments.input_file = "";
+    char* res = NULL;
+    char inBuffer[13];      // should be multiple of 3
+    char outBuffer[20];
 
-  argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
-  char inBuf[100], outBuf[200] = {0};
-  fgets(inBuf, sizeof(inBuf), stdin);
-
-
-
-  if (arguments.encode)
-  {
-    encode(inBuf, outBuf);
-  }
-
-  if (arguments.decode)
-  {
-    decode(inBuf, outBuf);
-  }
+    FILE* f = 0;
+    if (strcmp(arguments.output_file, "") != 0)
+    {
+        f = fopen(arguments.output_file, "w");
+    }
+    else
+    {
+        f = stdout;
+    }
 
 
-  FILE* f = 0;
-  if (strcmp(arguments.output_file, "") != 0)
-  {
-    f = fopen(arguments.output_file, "w");
-  }
-  else
-  {
-    f = stdout;
-  }
+    while (0 != readFile(inBuffer, sizeof(inBuffer), stdin)) {
+        memset(outBuffer, '\0', sizeof(outBuffer));
+        if (arguments.encode)
+            encode(inBuffer, outBuffer);
+        if (arguments.decode)
+            decode(inBuffer, outBuffer);
 
 
-  fprintf(f, "%s\n", outBuf);
-  fclose(f);
+        fprintf(f, "%s", outBuffer);
+    }
+
+    fprintf(f, "\n");
+    fclose(f);
 
 
   return 0;
+}
+
+
+
+
+int readFile(char* buffer, int size, FILE *stream)
+{
+    int i = 0;
+    int c;
+
+    memset(buffer, '\0', size);
+
+    while ((--size > 0) && ((c=fgetc(stream)) != EOF)) {
+        buffer[i++] = c;
+    }
+
+    buffer[i+1] = '\0';
+    return i;
 }
