@@ -5,10 +5,10 @@ CFLAGS=-I$(IDIR)
 
 ODIR=./obj
 
-_DEPS = base64.h
+_DEPS = base64.h utils.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = base64.o main.o
+_OBJ = base64.o utils.o main.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SRC)/%.c $(DEPS)

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <argp.h>
 #include "base64.h"
+#include "utils.h"
+
 
 const char * argp_program_version = "0.1";
 static char doc[] = "base64 encoding and decoding utility program";
@@ -76,8 +78,6 @@ static struct argp argp = {options, parse_opt, 0, doc, 0, 0, 0 };
 
 
 
-int readFile(char* buffer, int size, FILE *stream);
-
 // MAIN
 int main(int argc, char *argv[]) {
     struct arguments arguments;
@@ -132,22 +132,4 @@ int main(int argc, char *argv[]) {
 
 
   return 0;
-}
-
-
-
-
-int readFile(char* buffer, int size, FILE *stream)
-{
-    int i = 0;
-    int c;
-
-    memset(buffer, '\0', size);
-
-    while ((--size > 0) && ((c=fgetc(stream)) != EOF)) {
-        buffer[i++] = c;
-    }
-
-    buffer[i+1] = '\0';
-    return i;
 }
