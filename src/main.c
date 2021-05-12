@@ -93,18 +93,30 @@ int main(int argc, char *argv[]) {
     char inBuffer[13];      // should be multiple of 3
     char outBuffer[20];
 
-    FILE* f = 0;
+    FILE* outFile = 0;
+    FILE* inFile = 0;
+
     if (strcmp(arguments.output_file, "") != 0)
     {
-        f = fopen(arguments.output_file, "w");
+        outFile = fopen(arguments.output_file, "w");
     }
     else
     {
-        f = stdout;
+        outFile = stdout;
+    }
+
+    if (strcmp(arguments.input_file, "") != 0)
+    {
+        inFile = fopen(arguments.input_file, "r");
+    }
+    else
+    {
+        inFile = stdin;
     }
 
 
-    while (0 != readFile(inBuffer, sizeof(inBuffer), stdin)) {
+
+    while (0 != readFile(inBuffer, sizeof(inBuffer), inFile)) {
         memset(outBuffer, '\0', sizeof(outBuffer));
         if (arguments.encode)
             encode(inBuffer, outBuffer);
@@ -112,11 +124,11 @@ int main(int argc, char *argv[]) {
             decode(inBuffer, outBuffer);
 
 
-        fprintf(f, "%s", outBuffer);
+        fprintf(outFile, "%s", outBuffer);
     }
 
-    fprintf(f, "\n");
-    fclose(f);
+    fprintf(outFile, "\n");
+    fclose(outFile);
 
 
   return 0;
