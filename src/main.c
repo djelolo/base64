@@ -123,11 +123,9 @@ int main(int argc, char *argv[]) {
         if (arguments.decode)
             decode(inBuffer, outBuffer);
 
-
         fprintf(outFile, "%s", outBuffer);
     }
 
-    fprintf(outFile, "\n");
     fclose(outFile);
 
 
