@@ -6,8 +6,15 @@
 #include "utils.h"
 
 
+#define BUFFER_SIZE 12  //<! Must be multiple of 3
+
+//! Program version
 const char * argp_program_version = "0.1";
+
+//! Program brief description
 static char doc[] = "base64 encoding and decoding utility program";
+
+//! Available options
 static struct argp_option options[] = {
   {"in", 'i', "FILE", 0, "Use file as input", 0},
   {"out", 'o', "FILE", 0, "Write output to file", 0},
@@ -15,6 +22,7 @@ static struct argp_option options[] = {
   {"decode", 'd', 0, 0, "Decode input from base64", 0},
 };
 
+//! Structure for arguments reading
 struct arguments
 {
   int encode;
@@ -24,11 +32,16 @@ struct arguments
 };
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "input string";
+// static char args_doc[] = "input string";
 
-/* Parse a single option. */
-static error_t
-parse_opt(int key, char *arg, struct argp_state *state)
+/*!
+   \brief Parse options
+   \param key Given option
+   \param arg Value passed to option
+   \param argp_state Structure to store options
+   \return Error code (0 if OK)
+*/
+static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
   /* Get the input argument from argp_parse, which we
      know is a pointer to our arguments structure. */
@@ -78,7 +91,12 @@ static struct argp argp = {options, parse_opt, 0, doc, 0, 0, 0 };
 
 
 
-// MAIN
+/*!
+   \brief Main
+   \param argc Arguments count
+   \param argv Arguments values
+   \return Return code (0 = OK)
+*/
 int main(int argc, char *argv[]) {
     struct arguments arguments;
     arguments.encode = 0;
@@ -86,50 +104,51 @@ int main(int argc, char *argv[]) {
     arguments.output_file = "";
     arguments.input_file = "";
 
+    // Parse arguments
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-
-    char* res = NULL;
-    char inBuffer[13];      // should be multiple of 3
-    char outBuffer[20];
+    // Initialize values
+    char inBuffer[BUFFER_SIZE + 1];                 // +1 for nul char at end of string
+    char outBuffer[(BUFFER_SIZE * 4 / 3 ) + 1];     // Buffer size increased by 1/3 when encoding
 
     FILE* outFile = 0;
     FILE* inFile = 0;
 
-    if (strcmp(arguments.output_file, "") != 0)
-    {
+    // Writing to file or to stdout depending on options
+    if (strcmp(arguments.output_file, "") != 0) {}
         outFile = fopen(arguments.output_file, "w");
     }
-    else
-    {
+    else {
         outFile = stdout;
     }
 
-    if (strcmp(arguments.input_file, "") != 0)
-    {
+    // Reading from file or from stdout depending on options
+    if (strcmp(arguments.input_file, "") != 0) {
         inFile = fopen(arguments.input_file, "r");
     }
-    else
-    {
+    else {
         inFile = stdin;
     }
 
 
-
+    // Iterate over input
     while (0 != readFile(inBuffer, sizeof(inBuffer), inFile)) {
         memset(outBuffer, '\0', sizeof(outBuffer));
+        // encoding
         if (arguments.encode)
             encode(inBuffer, outBuffer);
+
+        // decoding
         if (arguments.decode)
             decode(inBuffer, outBuffer);
 
         fprintf(outFile, "%s", outBuffer);
     }
 
-
+    // Write new line char at end of file and close file
     fprintf(outFile, "\n");
     fclose(outFile);
 
 
-  return 0;
+    return 0;
 }

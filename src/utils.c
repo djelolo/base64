@@ -2,7 +2,13 @@
 
 
 
-
+/*!
+   \brief Read from input stream into buffer with buffer size control
+   \param buffer Destination buffer
+   \param size Buffer size
+   \param stream Input stream
+   \return Size of read string
+*/
 int readFile(char* buffer, int size, FILE *stream)
 {
     int i = 0;

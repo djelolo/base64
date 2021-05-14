@@ -3,6 +3,8 @@
 
 int convertChar(char in, char* out);
 
+
+//! Dictionary for base64 encoding/decoding
 const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -10,6 +12,11 @@ const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
 
 
 
+/*!
+   \brief Encode input char into base64
+   \param src Source string to convert
+   \param dst Encoded string
+*/
 void encode(char* src, char* dst)
 {
   int counter = 0;
@@ -54,7 +61,11 @@ void encode(char* src, char* dst)
 }
 
 
-
+/*!
+   \brief Decode input char from base64
+   \param src Source string to decode
+   \param dst Decoded string
+*/
 int decode(char* src, char* dst)
 {
   unsigned char buffer;
@@ -96,7 +107,12 @@ int decode(char* src, char* dst)
 }
 
 
-
+/*!
+   \brief Convert hex value into its base64 equivalent accordint to dictionary
+   \param in char to convert (from 0 to 64)
+   \param out converted value
+   \return -1 if input out of range. 0 otherwise.
+*/
 int convertChar(char in, char* out)
 {
   int retCode = 0;
