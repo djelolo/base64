@@ -126,6 +126,8 @@ int main(int argc, char *argv[]) {
         fprintf(outFile, "%s", outBuffer);
     }
 
+
+    fprintf(outFile, "\n");
     fclose(outFile);
 
 
