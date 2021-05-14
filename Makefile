@@ -1,7 +1,10 @@
 IDIR=./include
 SRC=./src
 CC=gcc
+MKDIR=mkdir -p
 CFLAGS=-I$(IDIR)
+
+.DEFAULT_GOAL := all
 
 ODIR=./obj
 
@@ -14,15 +17,24 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 $(ODIR)/%.o: $(SRC)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+all: directories base64
 
 base64: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-
 .PHONY: clean
+
+.PHONY: directories
+
+directories:
+	$(MKDIR) $(ODIR)
 
 clean:
 	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+	rmdir $(ODIR)
+
+cleanall: clean
+	rm base64
 
 run:
 	./base64 -e
