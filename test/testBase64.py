@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3.8
 
 import json
 import os
@@ -101,7 +101,11 @@ def make_test_function(folder, options, expectedFile, error):
             for opt in options:
                 opts.extend(opt.split(' '))
 
-            returnCode = subprocess.run(["./" + exeFile] + opts, stdout=outfile, stderr=outfile)  # Run exe with options
+            try:
+                execTrace = subprocess.run(["./" + exeFile] + opts, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
+            except subprocess.CalledProcessError as e:
+                self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
+
         os.chdir(rootDir)
 
 
@@ -109,7 +113,6 @@ def make_test_function(folder, options, expectedFile, error):
         # Else, result file if the standard output file
         optionsO = [o for o in options if o.startswith("-o")]
         if optionsO:
-            print("option o")
             resultFile = testWorkspace + optionsO[0].split(" ")[-1]
         else:
             resultFile = testWorkspace + stdoutFile
@@ -118,7 +121,6 @@ def make_test_function(folder, options, expectedFile, error):
             result = f.read()
 
 
-        print(expectedFile)
         with open(testWorkspace + expectedFile, "r") as f:
             expected = f.read()
 
@@ -155,7 +157,6 @@ if __name__ == '__main__':
             config["results"] = {}
 
 
-        print(config["results"])
 
         # Create test case method corresponding to test and add it to unit test class
         testFunc = make_test_function(testCase, config["options"], config["expected"], config["error"])

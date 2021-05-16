@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
     FILE* inFile = 0;
 
     // Writing to file or to stdout depending on options
-    if (strcmp(arguments.output_file, "") != 0) {}
+    if (strcmp(arguments.output_file, "") != 0) {
         outFile = fopen(arguments.output_file, "w");
     }
     else {
@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
     // Iterate over input
     while (0 != readFile(inBuffer, sizeof(inBuffer), inFile)) {
         memset(outBuffer, '\0', sizeof(outBuffer));
+
         // encoding
         if (arguments.encode)
             encode(inBuffer, outBuffer);
