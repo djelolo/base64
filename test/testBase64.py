@@ -63,13 +63,14 @@ class TestBase64(unittest.TestCase):
 
 
 
-def make_test_function(folder, options, expectedFile, error):
+def make_test_function(folder, options, std_input, expectedFile, error):
     """Create a test case method.
 
     The created method will have to be added to the unit test class.
     Arguments are:
     - folder: folder containing everything required for test case (test description + files)
     - options: List of options to add to command line
+    - std_input: Parameters defining if stdin shall be provided to tested program
     - expectedFile: File containing expected result
     - error: TODO
     All test cases will follow the scheme described by the test function below.
@@ -102,7 +103,13 @@ def make_test_function(folder, options, expectedFile, error):
                 opts.extend(opt.split(' '))
 
             try:
-                execTrace = subprocess.run(["./" + exeFile] + opts, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
+                if std_input and "file" in std_input.keys():
+                    with open(std_input["file"], "r") as inFile:
+                        execTrace = subprocess.run(["./" + exeFile] + opts, stdin=inFile, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
+                elif std_input and "value" in std_input.keys():
+                    execTrace = subprocess.run(["./" + exeFile] + opts, input=std_input["value"], stdout=outfile, stderr=outfile, check=True, text=True)  # Run exe with options
+                else:
+                    execTrace = subprocess.run(["./" + exeFile] + opts, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
             except subprocess.CalledProcessError as e:
                 self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
 
@@ -147,21 +154,26 @@ if __name__ == '__main__':
 
     # Parse each subdir (i.e. each test case)
     for testCase in os.listdir(testCasesFolder):
-        # Load test config from json file
-        with open(testCasesFolder + testCase + "/" + jsonConfigName) as jsonFile:
-            config = json.load(jsonFile)
+        if os.path.isdir(testCasesFolder + testCase):
+            # Load test config from json file
+            with open(testCasesFolder + testCase + "/" + jsonConfigName) as jsonFile:
+                config = json.load(jsonFile)
 
-        if "error" not in config.keys():
-            config["error"] = None
-        if "results" not in config.keys():
-            config["results"] = {}
+            if "error" not in config.keys():
+                config["error"] = None
+            if "results" not in config.keys():
+                config["results"] = {}
+            if "stdin" not in config.keys():
+                config["stdin"] = None
 
 
 
-        # Create test case method corresponding to test and add it to unit test class
-        testFunc = make_test_function(testCase, config["options"], config["expected"], config["error"])
-        testFunc.__doc__ = config["purpose"]    # Replace docstring from the template to a specific one issued from test context
-        setattr(TestBase64, 'test_{0}'.format(testCase), testFunc)
+            # Create test case method corresponding to test and add it to unit test class
+            testFunc = make_test_function(testCase, config["options"], config["stdin"], config["expected"], config["error"])
+            testFunc.__doc__ = config["purpose"]    # Replace docstring from the template to a specific one issued from test context
+            setattr(TestBase64, 'test_{0}'.format(testCase), testFunc)
+
+
 
     # Run unit tests
     unittest.main(verbosity=1)
