@@ -4,5 +4,7 @@
         "-e",
         "-i in.txt"
         ],
-    "expected": "expected.txt"
+    "expected": {
+        "file": "expected.txt"
+        }
 }

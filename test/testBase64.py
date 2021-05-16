@@ -63,7 +63,7 @@ class TestBase64(unittest.TestCase):
 
 
 
-def make_test_function(folder, options, std_input, expectedFile, error):
+def make_test_function(folder, options, std_input, expectedConfig, error):
     """Create a test case method.
 
     The created method will have to be added to the unit test class.
@@ -71,7 +71,7 @@ def make_test_function(folder, options, std_input, expectedFile, error):
     - folder: folder containing everything required for test case (test description + files)
     - options: List of options to add to command line
     - std_input: Parameters defining if stdin shall be provided to tested program
-    - expectedFile: File containing expected result
+    - expectedConfig: expected results (either in file or in json)
     - error: TODO
     All test cases will follow the scheme described by the test function below.
     """
@@ -127,9 +127,11 @@ def make_test_function(folder, options, std_input, expectedFile, error):
         with open(resultFile, "r") as f:
             result = f.read()
 
-
-        with open(testWorkspace + expectedFile, "r") as f:
-            expected = f.read()
+        if "file" in expectedConfig.keys():
+            with open(testWorkspace + expectedConfig["file"], "r") as f:
+                expected = f.read()
+        elif "value" in expectedConfig.keys():
+            expected = expectedConfig["value"]
 
 
         self.assertEqual(expected, result, "Incorrect base64 conversion")

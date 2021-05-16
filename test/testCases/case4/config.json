@@ -6,6 +6,6 @@
         "-o out.txt"
         ],
     "expected": {
-        "value": "dGVzdAo="
+        "value": "c3RyaW5nIHRvIGVuY29kZQo="
         }
 }

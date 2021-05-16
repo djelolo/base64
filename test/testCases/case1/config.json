@@ -2,9 +2,11 @@
     "purpose": "Test of base64 encoding from stdin and to stdout",
     "stdin" : {
         "value": "test"
-    },
+        },
     "options": [
         "-e"
         ],
-    "expected": "expected.txt"
+    "expected": {
+        "file": "expected.txt"
+        }
 }

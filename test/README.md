@@ -19,20 +19,44 @@ JSON file contains following fields:
   * value: String to pass to stdin
   * file: filename which content will be passed to stdin (file has to be present in test case folder)
 * options: Array of all options to add to program call
-* expected: Filename of expected results. Program's output is compared to this file to define if test is conform.
+* expected: expected result. This field has to contain one and only one of following key
+  * file: expected value is stored in indicated file
+  * value: expected value is directly indicated here
+
 
 ### Example 1
-
+* value `string to encode` is given to program through stdin
+* only one option is set: `-e`
+* expected result is stored in file `expected.txt`
 ```
 {
-    "purpose": "Test of base64 encoding from file and to stdout",
+    "purpose": "Test of base64 encoding from stdin and to file",
     "stdin" : {
-        "value": "test"
-    },
+        "value": "string to encode"
+        },
+    "options": [
+        "-e"
+        ],
+    "expected": {
+        "file": "expected.txt"
+        }
+}
+```
+
+### Example 2
+* stdin is not used
+* 3 options are set: `-e`, `-i in.txt` and `-o out.txt`
+* expected result is `c3RyaW5nIHRvIGVuY29kZQo=`
+```
+{
+    "purpose": "Test of base64 encoding from file and to file",
     "options": [
         "-e",
-        "-i in.txt"
+        "-i in.txt",
+        "-o out.txt"
         ],
-    "expected": "expected.txt"
+    "expected": {
+        "value": "c3RyaW5nIHRvIGVuY29kZQo="
+        }
 }
 ```
