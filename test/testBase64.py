@@ -97,21 +97,28 @@ def make_test_function(folder, options, std_input, expectedConfig, error):
         # Standard output is redirected to a file
         rootDir = os.getcwd()
         os.chdir(testWorkspace)   # change current path to the folder where is located the executable
-        with open(rootDir + "/" + testWorkspace + stdoutFile, "w") as outfile:
-            opts = []
-            for opt in options:
-                opts.extend(opt.split(' '))
 
-            try:
-                if std_input and "file" in std_input.keys():
-                    with open(std_input["file"], "r") as inFile:
-                        execTrace = subprocess.run(["./" + exeFile] + opts, stdin=inFile, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
-                elif std_input and "value" in std_input.keys():
-                    execTrace = subprocess.run(["./" + exeFile] + opts, input=std_input["value"], stdout=outfile, stderr=outfile, check=True, text=True)  # Run exe with options
-                else:
-                    execTrace = subprocess.run(["./" + exeFile] + opts, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
-            except subprocess.CalledProcessError as e:
-                self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
+        # pre-process options before passing them to subprocess.run
+        opts = []
+        for opt in options:
+            opts.extend(opt.split(' '))
+
+
+        if std_input and "file" in std_input.keys():
+            with open(std_input["file"], "r") as inFile:
+                input_text = inFile.read()
+            params = {"stdin": input_text, "text": True}
+        elif std_input and "value" in std_input.keys():
+            params = {"input": std_input["value"], "text": True}
+        else:
+            params = {}
+
+
+        try:
+            with open(rootDir + "/" + testWorkspace + stdoutFile, "w") as outfile:
+                execTrace = subprocess.run(["./" + exeFile] + opts, **params, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
+        except subprocess.CalledProcessError as e:
+            self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
 
         os.chdir(rootDir)
 
