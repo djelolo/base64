@@ -131,7 +131,7 @@ def make_test_function(folder, options, std_input, expectedConfig, error):
             with open(testWorkspace + expectedConfig["file"], "r") as f:
                 expected = f.read()
         elif "value" in expectedConfig.keys():
-            expected = expectedConfig["value"]
+            expected = expectedConfig["value"] + "\n"
 
 
         self.assertEqual(expected, result, "Incorrect base64 conversion")
