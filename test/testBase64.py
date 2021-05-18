@@ -14,7 +14,6 @@ testCasesFolder = "testCases/"
 jsonConfigName = "config.json"
 exeSrcFolder = "../"
 exeFile = "base64"
-stdoutFile = "result.txt"
 
 
 def copyFolder(src, dst):
@@ -103,20 +102,19 @@ def make_test_function(folder, options, std_input, expectedConfig, error):
         for opt in options:
             opts.extend(opt.split(' '))
 
-
+        # Define arguments for calling executable (stdin wrapping)
         if std_input and "file" in std_input.keys():
             with open(std_input["file"], "r") as inFile:
                 input_text = inFile.read()
-            params = {"stdin": input_text, "text": True}
+            params = {"stdin": input_text}
         elif std_input and "value" in std_input.keys():
-            params = {"input": std_input["value"], "text": True}
+            params = {"input": std_input["value"]}
         else:
             params = {}
 
-
+        # Call executable and check proper execution
         try:
-            with open(rootDir + "/" + testWorkspace + stdoutFile, "w") as outfile:
-                execTrace = subprocess.run(["./" + exeFile] + opts, **params, stdout=outfile, stderr=outfile, check=True)  # Run exe with options
+            execTrace = subprocess.run(["./" + exeFile] + opts, **params, text=True, capture_output=True, check=True, timeout=1)
         except subprocess.CalledProcessError as e:
             self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
 
@@ -128,19 +126,19 @@ def make_test_function(folder, options, std_input, expectedConfig, error):
         optionsO = [o for o in options if o.startswith("-o")]
         if optionsO:
             resultFile = testWorkspace + optionsO[0].split(" ")[-1]
+            with open(resultFile, "r") as f:
+                result = f.read()
         else:
-            resultFile = testWorkspace + stdoutFile
+            result = execTrace.stdout
 
-        with open(resultFile, "r") as f:
-            result = f.read()
-
+        # Retrieve expected value
         if "file" in expectedConfig.keys():
             with open(testWorkspace + expectedConfig["file"], "r") as f:
                 expected = f.read()
         elif "value" in expectedConfig.keys():
             expected = expectedConfig["value"] + "\n"
 
-
+        # Check test result
         self.assertEqual(expected, result, "Incorrect base64 conversion")
 
 
