@@ -14,7 +14,7 @@ pipeline {
           }
         }
         stage('branche2') {
-          step {
+          steps {
             sh 'echo branch2'
           }
         }
