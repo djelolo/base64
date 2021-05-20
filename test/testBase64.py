@@ -5,7 +5,6 @@ import os
 import shutil
 import subprocess
 import sys
-import unittest
 
 
 # Constant definitions
@@ -35,37 +34,9 @@ def copyFolder(src, dst):
 
 
 
-class TestBase64(unittest.TestCase):
-    """Minimal class fot unittest.
+def check_base64_execution(folder, options, std_input, expectedConfig, error):
+    """Test function that will be executed as many times as test cases
 
-    Only contains setUp and tearDown methods.
-    Test cases methods will be dynamically added at runtime.
-    """
-
-    def setUp(self):
-        """Prepare test environement before test case.
-
-        Create an empty folder in which test will be executed.
-        """
-
-        shutil.rmtree(testWorkspace, ignore_errors=True)
-        os.makedirs(testWorkspace)
-
-
-    def tearDown(self):
-        """Clean up after test execution.
-
-        Remove folder dedicated to test execution.
-        """
-        #shutil.rmtree(testWorkspace)
-        pass
-
-
-
-def make_test_function(folder, options, std_input, expectedConfig, error):
-    """Create a test case method.
-
-    The created method will have to be added to the unit test class.
     Arguments are:
     - folder: folder containing everything required for test case (test description + files)
     - options: List of options to add to command line
@@ -75,93 +46,72 @@ def make_test_function(folder, options, std_input, expectedConfig, error):
     All test cases will follow the scheme described by the test function below.
     """
 
-    def test(self):
-        """Test base common to each test case
 
-        Principles of the test case are:
-        - Copy test files into the folder dedicated to test execution
-        - Run program with desired options
-        - Analyse output file to compare with expected results
-        """
+    # prepare test environment
+    copyFolder(testCasesFolder + folder, testWorkspace) # Copy test files
+    shutil.copy(exeSrcFolder + exeFile, testWorkspace) # Copy executable
 
-        returnCode = 0
+    rootDir = os.getcwd()
+    os.chdir(testWorkspace)   # change current path to the folder where is located the executable
 
+    # pre-process options before passing them to subprocess.run
+    opts = []
+    for opt in options:
+        opts.extend(opt.split(' '))
 
-        # prepare test environment
-        copyFolder(testCasesFolder + folder, testWorkspace) # Copy test files
-        shutil.copy(exeSrcFolder + exeFile, testWorkspace) # Copy executable
+    # Define arguments for calling executable (stdin wrapping)
+    if std_input and "file" in std_input.keys():
+        with open(std_input["file"], "r") as inFile:
+            input_text = inFile.read()
+        params = {"stdin": input_text}
+    elif std_input and "value" in std_input.keys():
+        params = {"input": std_input["value"]}
+    else:
+        params = {}
 
-        # Execute program
-        #=================
-        # Standard output is redirected to a file
-        rootDir = os.getcwd()
-        os.chdir(testWorkspace)   # change current path to the folder where is located the executable
+    # Call executable and check proper execution
+    try:
+        execTrace = subprocess.run(["./" + exeFile] + opts, **params, text=True, capture_output=True, check=True, timeout=1)
+    except subprocess.CalledProcessError as e:
+        self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
 
-        # pre-process options before passing them to subprocess.run
-        opts = []
-        for opt in options:
-            opts.extend(opt.split(' '))
-
-        # Define arguments for calling executable (stdin wrapping)
-        if std_input and "file" in std_input.keys():
-            with open(std_input["file"], "r") as inFile:
-                input_text = inFile.read()
-            params = {"stdin": input_text}
-        elif std_input and "value" in std_input.keys():
-            params = {"input": std_input["value"]}
-        else:
-            params = {}
-
-        # Call executable and check proper execution
-        try:
-            execTrace = subprocess.run(["./" + exeFile] + opts, **params, text=True, capture_output=True, check=True, timeout=1)
-        except subprocess.CalledProcessError as e:
-            self.assertTrue(False, "Program {} return error code {}".format(exeFile, e.returncode))
-
-        os.chdir(rootDir)
+    os.chdir(rootDir)
 
 
-        # Identify result file. If program is called with option -o, result file is the -o value.
-        # Else, result file if the standard output file
-        optionsO = [o for o in options if o.startswith("-o")]
-        if optionsO:
-            resultFile = testWorkspace + optionsO[0].split(" ")[-1]
-            with open(resultFile, "r") as f:
-                result = f.read()
-        else:
-            result = execTrace.stdout
+    # Identify result file. If program is called with option -o, result file is the -o value.
+    # Else, result file in stdout
+    optionsO = [o for o in options if o.startswith("-o")]
+    if optionsO:
+        resultFile = testWorkspace + optionsO[0].split(" ")[-1]
+        with open(resultFile, "r") as f:
+            result = f.read()
+    else:
+        result = execTrace.stdout
 
-        # Retrieve expected value
-        if "file" in expectedConfig.keys():
-            with open(testWorkspace + expectedConfig["file"], "r") as f:
-                expected = f.read()
-        elif "value" in expectedConfig.keys():
-            expected = expectedConfig["value"] + "\n"
+    # Retrieve expected value
+    if "file" in expectedConfig.keys():
+        with open(testWorkspace + expectedConfig["file"], "r") as f:
+            expected = f.read()
+    elif "value" in expectedConfig.keys():
+        expected = expectedConfig["value"] + "\n"
 
-        # Check test result
-        self.assertEqual(expected, result, "Incorrect base64 conversion")
-
-
-        # # Check error returned by prog
-        # #=============================
-        # if error:
-        #     self.assertEqual(error["code"], returnCode, "Wrong error code returned. Expected: {} - obtained: {}".format(error["code"], returnCode))
-        #     if "message" in error.keys():
-        #         self.assertTrue(findMessage(testWorkspace + exePath + "Erreur.log", error["message"]), "Error message not found")
-        # else:
-        #     self.assertEqual(0, returnCode, "Unexpected error code returned : {}".format(returnCode))
-        #
-
-
-    return test
+    # Check test result
+    assert expected == result
 
 
 
-if __name__ == '__main__':
 
-    # Parse each subdir (i.e. each test case)
+def test_cases():
+    """Parse all subfolders and execute test for each.
+
+    Docstring automatically replaced at test execution
+    """
+
+    # Parse folder containing test cases
     for testCase in os.listdir(testCasesFolder):
         if os.path.isdir(testCasesFolder + testCase):
+
+
             # Load test config from json file
             with open(testCasesFolder + testCase + "/" + jsonConfigName) as jsonFile:
                 config = json.load(jsonFile)
@@ -173,14 +123,11 @@ if __name__ == '__main__':
             if "stdin" not in config.keys():
                 config["stdin"] = None
 
+            test_cases.__doc__ = """{} - {}""".format(testCase, config["purpose"])
 
+            # # Create test case method corresponding to test and add it to unit test class
+            # testFunc = make_function(testCase, config["options"], config["stdin"], config["expected"], config["error"])
+            # testFunc.__doc__ = config["purpose"]    # Replace docstring from the template to a specific one issued from test context
 
-            # Create test case method corresponding to test and add it to unit test class
-            testFunc = make_test_function(testCase, config["options"], config["stdin"], config["expected"], config["error"])
-            testFunc.__doc__ = config["purpose"]    # Replace docstring from the template to a specific one issued from test context
-            setattr(TestBase64, 'test_{0}'.format(testCase), testFunc)
-
-
-
-    # Run unit tests
-    unittest.main(verbosity=1)
+            # Proceed to test
+            yield check_base64_execution, testCase, config["options"], config["stdin"], config["expected"], config["error"]
