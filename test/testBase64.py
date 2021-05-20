@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+from nose.tools import with_setup
 
 
 # Constant definitions
@@ -32,8 +33,24 @@ def copyFolder(src, dst):
         elif os.path.isdir(src + "/" + item):
             copyFolder(src + "/" + item, dst + "/" + item)
 
+def create_workspace():
+    """Prepare test environement before test case.
+    Create an empty folder in which test will be executed.
+    """
+    shutil.rmtree(testWorkspace, ignore_errors=True)
+    os.makedirs(testWorkspace)
 
 
+def remove_workspace():
+    """Clean up after test execution.
+    Remove folder dedicated to test execution.
+    """
+    shutil.rmtree(testWorkspace)
+    pass
+
+
+
+@with_setup(create_workspace, remove_workspace)
 def check_base64_execution(folder, options, std_input, expectedConfig, error):
     """Test function that will be executed as many times as test cases
 
