@@ -7,20 +7,19 @@ pipeline {
           stages {
             stage('Compile') {
               steps {
-                sh '''make'''
+                sh 'echo Compile'
               }
             }
             stage('Compile2') {
               steps {
-                sh '''make'''
+                sh 'echo compile2'
               }
             }
           }
         }
         stage('branche 2') {
           steps {
-            sh '''make
-            '''
+            sh 'echo branche2'
           }
         }
       }
