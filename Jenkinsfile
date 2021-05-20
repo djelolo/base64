@@ -7,6 +7,11 @@ pipeline {
 '''
       }
     }
-
+    stage('Compile2') {
+      steps {
+        sh '''make
+'''
+      }
+    }
   }
 }
