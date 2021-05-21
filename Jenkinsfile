@@ -1,16 +1,16 @@
 pipeline {
   agent any
   stages {
-    stage('common') {
+    stage('Make') {
       steps {
-        sh 'echo common'
+        sh 'make'
       }
     }
-    stage('paral') {
+    stage('Test') {
       parallel {
-        stage('branche1') {
+        stage('Python tests') {
           steps {
-            sh 'echo branch1'
+            sh 'cd test && nosetests'
           }
         }
         stage('branche2') {
@@ -22,4 +22,3 @@ pipeline {
     }
   }
 }
-    
