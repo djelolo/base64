@@ -10,7 +10,7 @@ pipeline {
       parallel {
         stage('Python tests') {
           steps {
-            sh 'cd test && nosetests'
+            sh 'cd test && nosetests -v --with-xunit'
           }
         }
         stage('branche2') {
