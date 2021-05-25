@@ -14,9 +14,7 @@ pipeline {
   }
   post {
     always {
-        junit
-            skipPublishingChecks: true,
-            testResults: 'test/nosetests.xml'
+        junit skipPublishingChecks: true, testResults: 'test/nosetests.xml'
     }
   }
 }
