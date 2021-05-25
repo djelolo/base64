@@ -6,19 +6,17 @@ pipeline {
         sh 'make'
       }
     }
-    stage('Test') {
-      parallel {
-        stage('Python tests') {
-          steps {
-            sh 'cd test && nosetests -v --with-xunit'
-          }
-        }
-        stage('branche2') {
-          steps {
-            sh 'echo branch2'
-          }
-        }
+    stage('Python tests') {
+      steps {
+        sh 'cd test && nosetests -v --with-xunit'
       }
+    }
+  }
+  post {
+    always {
+        junit
+            skipPublishingChecks: true,
+            testResults: 'test/nosetests.xml'
     }
   }
 }
