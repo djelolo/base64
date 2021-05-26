@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
     // Iterate over input
     while (0 != readFile(inBuffer, sizeof(inBuffer), inFile)) {
         memset(outBuffer, '\0', sizeof(outBuffer));
+
         // encoding
         if (arguments.encode)
             encode(inBuffer, outBuffer);

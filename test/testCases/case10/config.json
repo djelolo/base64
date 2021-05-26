@@ -1,0 +1,11 @@
+{
+    "purpose": "Test of base64 decoding from file and to file",
+    "options": [
+        "-d",
+        "-i in.txt",
+        "-o out.txt"
+        ],
+    "expected": {
+        "file": "expected.txt"
+        }
+}

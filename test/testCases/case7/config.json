@@ -1,0 +1,12 @@
+{
+    "purpose": "Test of base64 decoding from stdin and to stdout",
+    "stdin" : {
+        "file": "in.txt"
+        },
+    "options": [
+        "-d"
+        ],
+    "expected": {
+        "file": "expected.txt"
+        }
+}

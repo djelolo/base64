@@ -1,0 +1,11 @@
+{
+    "purpose": "Test of base64 encoding with a long text file",
+    "options": [
+        "-e",
+        "-i in.txt",
+        "-o out.txt"
+        ],
+    "expected": {
+        "file": "expected.txt"
+        }
+}
