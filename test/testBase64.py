@@ -80,7 +80,7 @@ def check_base64_execution(folder, options, std_input, expectedConfig, error):
     if std_input and "file" in std_input.keys():
         with open(std_input["file"], "r") as inFile:
             input_text = inFile.read()
-        params = {"stdin": input_text}
+        params = {"input": input_text}
     elif std_input and "value" in std_input.keys():
         params = {"input": std_input["value"]}
     else:

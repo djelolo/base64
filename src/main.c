@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 12  //<! Must be multiple of 3
 
 //! Program version
-const char * argp_program_version = "0.1";
+const char * argp_program_version = "0.2";
 
 //! Program brief description
 static char doc[] = "base64 encoding and decoding utility program";
