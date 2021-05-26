@@ -1,0 +1,11 @@
+{
+    "purpose": "Test of base64 encoding with a binary file",
+    "options": [
+        "-e",
+        "-i tux.png",
+        "-o out.txt"
+        ],
+    "expected": {
+        "file": "expected.txt"
+        }
+}
