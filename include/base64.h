@@ -2,7 +2,7 @@
 #define BASE64_H_
 
 
-void encode(char* src, char* dst);
+void encode(char* src, int len, char* dst);
 int decode(char* src, char* dst);
 
 

@@ -17,27 +17,27 @@ const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
    \param src Source string to convert
    \param dst Encoded string
 */
-void encode(char* src, char* dst)
+void encode(char* src, int len, char* dst)
 {
   int counter = 0;
   unsigned char buffer;
 
-  while (*src != '\0')
+  for (int i=0 ; i<len ; i++)
   {
     switch (counter)
     {
       case 0:
-        *dst++ = dic[*src >> 2];
+        *dst++ = dic[(*src >> 2) & 0x3F];
         buffer = (*src++ << 4) & 0x30;
         counter++;
         break;
       case 1:
-        *dst++ = dic[(*src >> 4) | buffer];
+        *dst++ = dic[((*src >> 4) & 0x0F) | buffer];
         buffer = (*src++ << 2) & 0x3C;
         counter++;
         break;
       case 2:
-        *dst++ = dic[(*src >> 6) | buffer];
+        *dst++ = dic[((*src >> 6) & 0x03) | buffer];
         *dst++ = dic[*src++ & 0x3F];
         counter = 0;
         break;

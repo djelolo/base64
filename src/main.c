@@ -130,14 +130,15 @@ int main(int argc, char *argv[]) {
         inFile = stdin;
     }
 
+    int len = 0;
 
     // Iterate over input
-    while (0 != readFile(inBuffer, sizeof(inBuffer), inFile)) {
+    while (0 != (len = readFile(inBuffer, sizeof(inBuffer), inFile))) {
         memset(outBuffer, '\0', sizeof(outBuffer));
 
         // encoding
         if (arguments.encode)
-            encode(inBuffer, outBuffer);
+            encode(inBuffer, len, outBuffer);
 
         // decoding
         if (arguments.decode)
