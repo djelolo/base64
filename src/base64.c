@@ -68,42 +68,52 @@ void encode(char* src, int len, char* dst)
 */
 int decode(char* src, char* dst)
 {
-  unsigned char buffer;
-  int counter = 0;
-  char value;
+    unsigned char buffer;
+    int counter = 0, length = 0;
+    char value;
 
-  while (*src != '\0')
-  {
-    if (convertChar(*src++, &value) != 0)
+    while (*src != '\0')
     {
-      return -1;
-    }
+        // Ignore newlines
+        if (*src == '\n') {
+            src++;
+            continue;
+        }
 
-    switch (counter)
-    {
-      case 0:
-        buffer = value << 2;
-        counter++;
-        break;
-      case 1:
-        *dst++ = buffer | (value >> 4);
-        buffer = value << 4;
-        counter++;
-        break;
-      case 2:
-        *dst++ = buffer | (value >> 2);
-        buffer = value << 6;
-        counter++;
-        break;
-      case 3:
-        *dst++ = buffer | value;
-        counter = 0;
-    }
+        if (convertChar(*src++, &value) != 0)
+            return -1;
+
+        switch (counter)
+        {
+            case 0:
+                buffer = value << 2;
+                counter++;
+                break;
+            case 1:
+                *dst++ = buffer | (value >> 4);
+                buffer = value << 4;
+                counter++;
+                length++;
+                break;
+            case 2:
+                *dst++ = buffer | (value >> 2);
+                buffer = value << 6;
+                counter++;
+                length++;
+                break;
+            case 3:
+                *dst++ = buffer | value;
+                counter = 0;
+                length++;
+                break;
+        }
   }
-  *dst = '\0';
 
-  if (counter != 0)
-    return -1;
+  if (counter != 0) {
+      return -1;
+  }
+  else
+    return length;
 }
 
 
@@ -115,23 +125,22 @@ int decode(char* src, char* dst)
 */
 int convertChar(char in, char* out)
 {
-  int retCode = 0;
+    int retCode = 0;
 
-  if ((in >= 'A') && (in <= 'Z'))
-    *out = in -'A';
-  else if ((in >= 'a') && (in <= 'z'))
-    *out = in -'a' + 26;
-  else if ((in >= '0') && (in <= '9'))
-    *out = in - '0' + 52;
-  else if (in == '+')
-    *out = 62;
-  else if (in =='\\')
-    *out = 63;
-  else if (in == '=')
-    *out = 0;
-  else {
-    retCode = -1;
-  }
+    if ((in >= 'A') && (in <= 'Z'))
+        *out = in -'A';
+    else if ((in >= 'a') && (in <= 'z'))
+        *out = in -'a' + 26;
+    else if ((in >= '0') && (in <= '9'))
+        *out = in - '0' + 52;
+    else if (in == '+')
+        *out = 62;
+    else if (in =='/')
+        *out = 63;
+    else if (in == '=')
+        *out = 0;
+    else
+        retCode = -1;
 
     return retCode;
 }
