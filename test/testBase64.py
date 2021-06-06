@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+import filecmp
 from nose.tools import with_setup
 
 
@@ -98,22 +99,34 @@ def check_base64_execution(folder, options, std_input, expectedConfig, error):
     # Identify result file. If program is called with option -o, result file is the -o value.
     # Else, result file in stdout
     optionsO = [o for o in options if o.startswith("-o")]
-    if optionsO:
+
+
+
+
+
+    # Special case: expected is in file and application output is in file as well
+    if ("file" in expectedConfig.keys()) and (optionsO):
         resultFile = testWorkspace + optionsO[0].split(" ")[-1]
-        with open(resultFile, "r") as f:
-            result = f.read()
+        sameFiles = filecmp.cmp(resultFile, testWorkspace + expectedConfig["file"], shallow=False)
+        assert sameFiles == True
     else:
-        result = execTrace.stdout
+        if optionsO:
+            resultFile = testWorkspace + optionsO[0].split(" ")[-1]
+            with open(resultFile, "r") as f:
+                result = f.read()
+        else:
+            result = execTrace.stdout
 
-    # Retrieve expected value
-    if "file" in expectedConfig.keys():
-        with open(testWorkspace + expectedConfig["file"], "r") as f:
-            expected = f.read()
-    elif "value" in expectedConfig.keys():
-        expected = expectedConfig["value"] + "\n"
 
-    # Check test result
-    assert expected == result
+        # Retrieve expected value
+        if "file" in expectedConfig.keys():
+            with open(testWorkspace + expectedConfig["file"], "r") as f:
+                expected = f.read()
+        elif "value" in expectedConfig.keys():
+            expected = expectedConfig["value"] + "\n"
+
+        # Check test result
+        assert result == expected
 
 
 
