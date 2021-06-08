@@ -1,1 +1,1 @@
-base64 encoding/decoding
+A string that ends with 2 equal signs

@@ -4,6 +4,7 @@
 
 void encode(char* src, int len, char* dst);
 int decode(char* src, char* dst);
+int isBinary();
 
 
 

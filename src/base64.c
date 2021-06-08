@@ -1,8 +1,23 @@
 #include "base64.h"
 
+#include <ctype.h>
 
-int convertChar(char in, char* out);
 
+
+typedef enum {
+    ERROR = -1,
+    OK,
+    SIGN_EQUAL
+} conv_ret_code;
+
+
+
+
+conv_ret_code convertChar(char in, char* out);
+char checkBinaryChar(char c);
+
+
+static int nonPrintableCharFound = 0;
 
 //! Dictionary for base64 encoding/decoding
 const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -71,6 +86,7 @@ int decode(char* src, char* dst)
     unsigned char buffer;
     int counter = 0, length = 0;
     char value;
+    conv_ret_code convResult;
 
     while (*src != '\0')
     {
@@ -80,7 +96,7 @@ int decode(char* src, char* dst)
             continue;
         }
 
-        if (convertChar(*src++, &value) != 0)
+        if ((convResult = convertChar(*src++, &value)) < 0)
             return -1;
 
         switch (counter)
@@ -90,21 +106,25 @@ int decode(char* src, char* dst)
                 counter++;
                 break;
             case 1:
-                *dst++ = buffer | (value >> 4);
+                *dst++ = checkBinaryChar(buffer | (value >> 4));
                 buffer = value << 4;
                 counter++;
                 length++;
                 break;
             case 2:
-                *dst++ = buffer | (value >> 2);
-                buffer = value << 6;
+                if (convResult != SIGN_EQUAL) {
+                    *dst++ = checkBinaryChar(buffer | (value >> 2));
+                    buffer = value << 6;
+                    length++;
+                }
                 counter++;
-                length++;
                 break;
             case 3:
-                *dst++ = buffer | value;
+                if (convResult != SIGN_EQUAL) {
+                    *dst++ = checkBinaryChar(buffer | value);
+                    length++;
+                }
                 counter = 0;
-                length++;
                 break;
         }
   }
@@ -116,6 +136,14 @@ int decode(char* src, char* dst)
     return length;
 }
 
+/*!
+   \brief Return true if decoded file contains non printable characters
+   \return 1 if file is type binary
+*/
+int isBinary()
+{
+    return nonPrintableCharFound;
+}
 
 /*!
    \brief Convert hex value into its base64 equivalent accordint to dictionary
@@ -123,9 +151,9 @@ int decode(char* src, char* dst)
    \param out converted value
    \return -1 if input out of range. 0 otherwise.
 */
-int convertChar(char in, char* out)
+conv_ret_code convertChar(char in, char* out)
 {
-    int retCode = 0;
+    conv_ret_code retCode = OK;
 
     if ((in >= 'A') && (in <= 'Z'))
         *out = in -'A';
@@ -137,10 +165,24 @@ int convertChar(char in, char* out)
         *out = 62;
     else if (in =='/')
         *out = 63;
-    else if (in == '=')
+    else if (in == '=') {
         *out = 0;
+        retCode = SIGN_EQUAL;
+    }
     else
-        retCode = -1;
+        retCode = ERROR;
 
     return retCode;
+}
+
+
+/*!
+   \brief Check and store if char is printable
+   \param character to check
+   \return checked character (unchanged)
+*/
+char checkBinaryChar(char c)
+{
+    nonPrintableCharFound = nonPrintableCharFound || (!isprint((int) c));
+    return c;
 }

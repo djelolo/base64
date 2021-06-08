@@ -156,8 +156,10 @@ int main(int argc, char *argv[]) {
         fwrite(outBuffer, size, 1, outFile);
     }
 
-    // Write new line char at end of file and close file
-    fwrite("\n", 1, 1, outFile);
+    // Write new line char at end of file only if non binary file
+    if (!isBinary())
+        fwrite("\n", 1, 1, outFile);
+
     fclose(outFile);
 
 
