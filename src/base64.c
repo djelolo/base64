@@ -1,8 +1,23 @@
 #include "base64.h"
 
+#include <ctype.h>
 
-int convertChar(char in, char* out);
 
+
+typedef enum {
+    ERROR = -1,
+    OK,
+    SIGN_EQUAL
+} conv_ret_code;
+
+
+
+
+conv_ret_code convertChar(char in, char* out);
+char checkBinaryChar(char c);
+
+
+static int nonPrintableCharFound = 0;
 
 //! Dictionary for base64 encoding/decoding
 const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -68,44 +83,67 @@ void encode(char* src, int len, char* dst)
 */
 int decode(char* src, char* dst)
 {
-  unsigned char buffer;
-  int counter = 0;
-  char value;
+    unsigned char buffer;
+    int counter = 0, length = 0;
+    char value;
+    conv_ret_code convResult;
 
-  while (*src != '\0')
-  {
-    if (convertChar(*src++, &value) != 0)
+    while (*src != '\0')
     {
-      return -1;
-    }
+        // Ignore newlines
+        if (*src == '\n') {
+            src++;
+            continue;
+        }
 
-    switch (counter)
-    {
-      case 0:
-        buffer = value << 2;
-        counter++;
-        break;
-      case 1:
-        *dst++ = buffer | (value >> 4);
-        buffer = value << 4;
-        counter++;
-        break;
-      case 2:
-        *dst++ = buffer | (value >> 2);
-        buffer = value << 6;
-        counter++;
-        break;
-      case 3:
-        *dst++ = buffer | value;
-        counter = 0;
-    }
+        if ((convResult = convertChar(*src++, &value)) < 0)
+            return -1;
+
+        switch (counter)
+        {
+            case 0:
+                buffer = value << 2;
+                counter++;
+                break;
+            case 1:
+                *dst++ = checkBinaryChar(buffer | (value >> 4));
+                buffer = value << 4;
+                counter++;
+                length++;
+                break;
+            case 2:
+                if (convResult != SIGN_EQUAL) {
+                    *dst++ = checkBinaryChar(buffer | (value >> 2));
+                    buffer = value << 6;
+                    length++;
+                }
+                counter++;
+                break;
+            case 3:
+                if (convResult != SIGN_EQUAL) {
+                    *dst++ = checkBinaryChar(buffer | value);
+                    length++;
+                }
+                counter = 0;
+                break;
+        }
   }
-  *dst = '\0';
 
-  if (counter != 0)
-    return -1;
+  if (counter != 0) {
+      return -1;
+  }
+  else
+    return length;
 }
 
+/*!
+   \brief Return true if decoded file contains non printable characters
+   \return 1 if file is type binary
+*/
+int isBinary()
+{
+    return nonPrintableCharFound;
+}
 
 /*!
    \brief Convert hex value into its base64 equivalent accordint to dictionary
@@ -113,25 +151,38 @@ int decode(char* src, char* dst)
    \param out converted value
    \return -1 if input out of range. 0 otherwise.
 */
-int convertChar(char in, char* out)
+conv_ret_code convertChar(char in, char* out)
 {
-  int retCode = 0;
+    conv_ret_code retCode = OK;
 
-  if ((in >= 'A') && (in <= 'Z'))
-    *out = in -'A';
-  else if ((in >= 'a') && (in <= 'z'))
-    *out = in -'a' + 26;
-  else if ((in >= '0') && (in <= '9'))
-    *out = in - '0' + 52;
-  else if (in == '+')
-    *out = 62;
-  else if (in =='\\')
-    *out = 63;
-  else if (in == '=')
-    *out = 0;
-  else {
-    retCode = -1;
-  }
+    if ((in >= 'A') && (in <= 'Z'))
+        *out = in -'A';
+    else if ((in >= 'a') && (in <= 'z'))
+        *out = in -'a' + 26;
+    else if ((in >= '0') && (in <= '9'))
+        *out = in - '0' + 52;
+    else if (in == '+')
+        *out = 62;
+    else if (in =='/')
+        *out = 63;
+    else if (in == '=') {
+        *out = 0;
+        retCode = SIGN_EQUAL;
+    }
+    else
+        retCode = ERROR;
 
     return retCode;
+}
+
+
+/*!
+   \brief Check and store if char is printable
+   \param character to check
+   \return checked character (unchanged)
+*/
+char checkBinaryChar(char c)
+{
+    nonPrintableCharFound = nonPrintableCharFound || (!isprint((int) c));
+    return c;
 }

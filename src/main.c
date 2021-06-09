@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 
     // Writing to file or to stdout depending on options
     if (strcmp(arguments.output_file, "") != 0) {
-        outFile = fopen(arguments.output_file, "w");
+        outFile = fopen(arguments.output_file, "wb");
     }
     else {
         outFile = stdout;
@@ -131,24 +131,35 @@ int main(int argc, char *argv[]) {
     }
 
     int len = 0;
+    int size = 0;
 
     // Iterate over input
     while (0 != (len = readFile(inBuffer, sizeof(inBuffer), inFile))) {
         memset(outBuffer, '\0', sizeof(outBuffer));
 
         // encoding
-        if (arguments.encode)
+        if (arguments.encode) {
             encode(inBuffer, len, outBuffer);
+            size = strlen(outBuffer);
+        }
 
         // decoding
-        if (arguments.decode)
-            decode(inBuffer, outBuffer);
+        if (arguments.decode) {
+            size = decode(inBuffer, outBuffer);
+            // TODO: test resturn code
 
-        fprintf(outFile, "%s", outBuffer);
+            if (size < 0) {
+                size = 0;
+            }
+        }
+
+        fwrite(outBuffer, size, 1, outFile);
     }
 
-    // Write new line char at end of file and close file
-    fprintf(outFile, "\n");
+    // Write new line char at end of file only if non binary file
+    if (!isBinary())
+        fwrite("\n", 1, 1, outFile);
+
     fclose(outFile);
 
 
