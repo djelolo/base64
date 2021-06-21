@@ -11,6 +11,11 @@ pipeline {
         sh 'cd test && nosetests -v --with-xunit'
       }
     }
+    stage('Generate doc') {
+      steps {
+        sh 'doxygen'
+      }
+    }
   }
   post {
     always {
