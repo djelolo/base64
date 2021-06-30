@@ -14,6 +14,7 @@ pipeline {
   }
   post {
     always {
+        archiveArtifacts artifacts: 'test/nosetests.xml', fingerprint: true
         junit skipPublishingChecks: true, testResults: 'test/nosetests.xml'
     }
   }
