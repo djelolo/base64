@@ -6,10 +6,10 @@
 #include "utils.h"
 
 
-#define BUFFER_SIZE 12  //<! Must be multiple of 3
+#define BUFFER_SIZE 12  //!< Size of input buffer. Must be multiple of 3
 
 //! Program version
-const char * argp_program_version = "0.2";
+const char * argp_program_version = "0.3";
 
 //! Program brief description
 static char doc[] = "base64 encoding and decoding utility program";
@@ -35,10 +35,10 @@ struct arguments
 // static char args_doc[] = "input string";
 
 /*!
-   \brief Parse options
+   \brief Function used by argparse to parse options
    \param key Given option
    \param arg Value passed to option
-   \param argp_state Structure to store options
+   \param state Structure to store options
    \return Error code (0 if OK)
 */
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
@@ -86,7 +86,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-
+//! Structure for argument parsing
 static struct argp argp = {options, parse_opt, 0, doc, 0, 0, 0 };
 
 

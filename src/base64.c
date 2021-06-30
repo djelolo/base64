@@ -3,11 +3,11 @@
 #include <ctype.h>
 
 
-
+//! Return code for character conversion
 typedef enum {
-    ERROR = -1,
-    OK,
-    SIGN_EQUAL
+    ERROR = -1,     //!< Input char is no part of base64 set
+    OK,             //!< Conversion ok
+    SIGN_EQUAL      //!< Input char is equal sign (filling characte)
 } conv_ret_code;
 
 
@@ -16,7 +16,7 @@ typedef enum {
 conv_ret_code convertChar(char in, char* out);
 char checkBinaryChar(char c);
 
-
+//! Flag used to know if one non printable character has been found when decoding
 static int nonPrintableCharFound = 0;
 
 //! Dictionary for base64 encoding/decoding
@@ -30,49 +30,50 @@ const char dic[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
 /*!
    \brief Encode input char into base64
    \param src Source string to convert
+   \param len Input buffer length
    \param dst Encoded string
 */
 void encode(char* src, int len, char* dst)
 {
-  int counter = 0;
-  unsigned char buffer;
+    int counter = 0;
+    unsigned char buffer;
 
-  for (int i=0 ; i<len ; i++)
-  {
+    for (int i=0 ; i<len ; i++)
+    {
+        switch (counter)
+        {
+        case 0:
+            *dst++ = dic[(*src >> 2) & 0x3F];
+            buffer = (*src++ << 4) & 0x30;
+            counter++;
+            break;
+        case 1:
+            *dst++ = dic[((*src >> 4) & 0x0F) | buffer];
+            buffer = (*src++ << 2) & 0x3C;
+            counter++;
+            break;
+        case 2:
+            *dst++ = dic[((*src >> 6) & 0x03) | buffer];
+            *dst++ = dic[*src++ & 0x3F];
+            counter = 0;
+            break;
+        }
+    }
+
     switch (counter)
     {
-      case 0:
-        *dst++ = dic[(*src >> 2) & 0x3F];
-        buffer = (*src++ << 4) & 0x30;
-        counter++;
+    case 0:
         break;
-      case 1:
-        *dst++ = dic[((*src >> 4) & 0x0F) | buffer];
-        buffer = (*src++ << 2) & 0x3C;
-        counter++;
+    case 1:
+        *dst++ = dic[buffer];
+        *dst++ = '=';
+        *dst++ = '=';
         break;
-      case 2:
-        *dst++ = dic[((*src >> 6) & 0x03) | buffer];
-        *dst++ = dic[*src++ & 0x3F];
-        counter = 0;
+    case 2:
+        *dst++ = dic[buffer];
+        *dst++ = '=';
         break;
     }
-  }
-
-  switch (counter)
-  {
-    case 0:
-      break;
-    case 1:
-      *dst++ = dic[buffer];
-      *dst++ = '=';
-      *dst++ = '=';
-      break;
-    case 2:
-      *dst++ = dic[buffer];
-      *dst++ = '=';
-      break;
-  }
 }
 
 
@@ -177,8 +178,8 @@ conv_ret_code convertChar(char in, char* out)
 
 
 /*!
-   \brief Check and store if char is printable
-   \param character to check
+   \brief Check and store if char is printable (internal variable \p nonPrintableCharFound updated)
+   \param c character to check
    \return checked character (unchanged)
 */
 char checkBinaryChar(char c)
